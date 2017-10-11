@@ -43,12 +43,19 @@ var http = {
     acceptAllCerts: function(allow, success, failure) {
         return exec(success, failure, "CordovaHttpPlugin", "acceptAllCerts", [allow]);
     },
+    disableRedirect: function(disable, success, failure) {
+        return exec(success, failure, "CordovaHttpPlugin", "disableRedirect", [disable]);
+    },
     validateDomainName: function(validate, success, failure) {
         return exec(success, failure, "CordovaHttpPlugin", "validateDomainName", [validate]);
     },
     post: function(url, params, headers, success, failure) {
         headers = mergeHeaders(this.headers, headers);
         return exec(success, failure, "CordovaHttpPlugin", "post", [url, params, headers]);
+    },
+    postJson: function(url, json, headers, success, failure) {
+        headers = mergeHeaders(this.headers, headers);
+        return exec(success, failure, "CordovaHttpPlugin", "postJson", [url, json, headers]);
     },
     get: function(url, params, headers, success, failure) {
         headers = mergeHeaders(this.headers, headers);
@@ -146,6 +153,9 @@ if (typeof angular !== "undefined") {
             enableSSLPinning: function(enable) {
                 return makePromise(http.enableSSLPinning, [enable]);
             },
+            disableRedirect: function(disable) {
+                return makePromise(http.disableRedirect, [disable]);
+            },
             acceptAllCerts: function(allow) {
                 return makePromise(http.acceptAllCerts, [allow]);
             },
@@ -154,6 +164,9 @@ if (typeof angular !== "undefined") {
             },
             post: function(url, params, headers) {
                 return makePromise(http.post, [url, params, headers], true);
+            },
+            postJson: function(url, json, headers) {
+                return makePromise(http.postJson, [url, json, headers], true);
             },
             get: function(url, params, headers) {
                 return makePromise(http.get, [url, params, headers], true);

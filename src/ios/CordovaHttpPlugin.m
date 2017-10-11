@@ -7,20 +7,31 @@
 
 - (void)setRequestHeaders:(NSDictionary*)headers forManager:(AFHTTPSessionManager*)manager;
 - (void)setResults:(NSMutableDictionary*)dictionary withTask:(NSURLSessionTask*)task;
+- (void)setRedirect:(AFHTTPSessionManager*)manager;
 
 @end
 
 
 @implementation CordovaHttpPlugin {
     AFSecurityPolicy *securityPolicy;
+    bool redirect;
 }
 
 - (void)pluginInitialize {
     securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModeNone];
+    redirect = true;
 }
 
 - (void)setRequestHeaders:(NSDictionary*)headers forManager:(AFHTTPSessionManager*)manager {
-    manager.requestSerializer = [AFHTTPRequestSerializer serializer];
+    NSString *contentType = [headers objectForKey:@"Content-Type"];
+    if([contentType isEqualToString:@"application/json"]) {
+        manager.requestSerializer = [AFJSONRequestSerializer serializer];
+    } else {
+        manager.requestSerializer = [AFHTTPRequestSerializer serializer];
+    }
+    
+    [manager.requestSerializer setTimeoutInterval:3600 ];
+    
     [headers enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
         [manager.requestSerializer setValue:obj forHTTPHeaderField:key];
     }];
@@ -32,6 +43,16 @@
         [dictionary setObject:[NSNumber numberWithInt:response.statusCode] forKey:@"status"];
         [dictionary setObject:response.allHeaderFields forKey:@"headers"];
     }
+}
+
+- (void)setRedirect:(AFHTTPSessionManager*)manager {
+    [manager setTaskWillPerformHTTPRedirectionBlock:^NSURLRequest * _Nonnull(NSURLSession * _Nonnull session, NSURLSessionTask * _Nonnull task, NSURLResponse * _Nonnull response, NSURLRequest * _Nonnull request) {
+        if (redirect) {
+            return request;
+        } else {
+            return nil;
+        }
+    }];
 }
 
 - (void)enableSSLPinning:(CDVInvokedUrlCommand*)command {
@@ -66,6 +87,16 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+- (void)disableRedirect:(CDVInvokedUrlCommand*)command {
+    CDVPluginResult* pluginResult = nil;
+    bool disable = [[command.arguments objectAtIndex:0] boolValue];
+
+    redirect = !disable;
+
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 - (void)post:(CDVInvokedUrlCommand*)command {
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
     manager.securityPolicy = securityPolicy;
@@ -73,7 +104,36 @@
     NSDictionary *parameters = [command.arguments objectAtIndex:1];
     NSDictionary *headers = [command.arguments objectAtIndex:2];
     [self setRequestHeaders: headers forManager: manager];
-   
+    [self setRedirect: manager];
+
+    CordovaHttpPlugin* __weak weakSelf = self;
+    manager.responseSerializer = [TextResponseSerializer serializer];
+    [manager POST:url parameters:parameters progress:nil success:^(NSURLSessionTask *task, id responseObject) {
+        NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+        [self setResults: dictionary withTask: task];
+        [dictionary setObject:responseObject forKey:@"data"];
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+        [weakSelf.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    } failure:^(NSURLSessionTask *task, NSError *error) {
+        NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+        [self setResults: dictionary withTask: task];
+        NSString* errResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        [dictionary setObject:errResponse forKey:@"error"];
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:dictionary];
+        [weakSelf.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    }];
+}
+
+- (void)postJson:(CDVInvokedUrlCommand*)command {
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.securityPolicy = securityPolicy;
+    NSString *url = [command.arguments objectAtIndex:0];
+    NSData *parameters = [command.arguments objectAtIndex:1];
+    NSDictionary *headers = [command.arguments objectAtIndex:2];
+    [headers setValue:@"application/json" forKey:@"Content-Type"];
+    [self setRequestHeaders: headers forManager: manager];
+    [self setRedirect: manager];
+
     CordovaHttpPlugin* __weak weakSelf = self;
     manager.responseSerializer = [TextResponseSerializer serializer];
     [manager POST:url parameters:parameters progress:nil success:^(NSURLSessionTask *task, id responseObject) {
@@ -99,9 +159,10 @@
     NSDictionary *parameters = [command.arguments objectAtIndex:1];
     NSDictionary *headers = [command.arguments objectAtIndex:2];
     [self setRequestHeaders: headers forManager: manager];
-   
+    [self setRedirect: manager];
+
     CordovaHttpPlugin* __weak weakSelf = self;
-   
+    
     manager.responseSerializer = [TextResponseSerializer serializer];
     [manager GET:url parameters:parameters progress:nil success:^(NSURLSessionTask *task, id responseObject) {
         NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
@@ -126,6 +187,7 @@
     NSDictionary *parameters = [command.arguments objectAtIndex:1];
     NSDictionary *headers = [command.arguments objectAtIndex:2];
     [self setRequestHeaders: headers forManager: manager];
+    [self setRedirect: manager];
     
     CordovaHttpPlugin* __weak weakSelf = self;
     
@@ -158,6 +220,7 @@
     NSURL *fileURL = [NSURL URLWithString: filePath];
     
     [self setRequestHeaders: headers forManager: manager];
+    [self setRedirect: manager];
     
     CordovaHttpPlugin* __weak weakSelf = self;
     manager.responseSerializer = [TextResponseSerializer serializer];
@@ -195,8 +258,9 @@
     NSDictionary *parameters = [command.arguments objectAtIndex:1];
     NSDictionary *headers = [command.arguments objectAtIndex:2];
     NSString *filePath = [command.arguments objectAtIndex: 3];
-   
+    
     [self setRequestHeaders: headers forManager: manager];
+    [self setRedirect: manager];
     
     if ([filePath hasPrefix:@"file://"]) {
         filePath = [filePath substringFromIndex:7];
@@ -226,7 +290,7 @@
          *
          * Modified by Andrew Stephan for Sync OnSet
          *
-        */
+         */
         // Download response is okay; begin streaming output to file
         NSString* parentPath = [filePath stringByDeletingLastPathComponent];
         
@@ -253,7 +317,7 @@
             [weakSelf.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
             return;
         }
-   
+        
         id filePlugin = [self.commandDelegate getCommandInstance:@"File"];
         NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
         [self setResults: dictionary withTask: task];
