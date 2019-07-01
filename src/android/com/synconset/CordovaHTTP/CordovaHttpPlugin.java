@@ -63,6 +63,14 @@ public class CordovaHttpPlugin extends CordovaPlugin {
             HashMap<String, String> headersMap = this.getStringMapFromJSONObject(headers);
             CordovaHttpHead head = new CordovaHttpHead(urlString, paramsMap, headersMap, callbackContext);
             cordova.getThreadPool().execute(head);
+        } else if (action.equals("options")) {
+            String urlString = args.getString(0);
+            JSONObject params = args.getJSONObject(1);
+            JSONObject headers = args.getJSONObject(2);
+            HashMap<?, ?> paramsMap = this.getMapFromJSONObject(params);
+            HashMap<String, String> headersMap = this.getStringMapFromJSONObject(headers);
+            CordovaHttpOptions head = new CordovaHttpOptions(urlString, paramsMap, headersMap, callbackContext);
+            cordova.getThreadPool().execute(head);
         } else if (action.equals("post")) {
             String urlString = args.getString(0);
             JSONObject params = args.getJSONObject(1);

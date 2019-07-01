@@ -178,6 +178,21 @@ NS_ASSUME_NONNULL_BEGIN
                        failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError *error))failure;
 
 /**
+ Creates and runs an `NSURLSessionDataTask` with a `HEAD` request.
+
+ @param URLString The URL string used to create the request URL.
+ @param parameters The parameters to be encoded according to the client request serializer.
+ @param success A block object to be executed when the task finishes successfully. This block has no return value and takes a single arguments: the data task.
+ @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
+
+ @see -dataTaskWithRequest:completionHandler:
+ */
+- (nullable NSURLSessionDataTask *)OPTIONS:(NSString *)URLString
+                    parameters:(nullable id)parameters
+                       success:(nullable void (^)(NSURLSessionDataTask *task))success
+                       failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError *error))failure;
+
+/**
  Creates and runs an `NSURLSessionDataTask` with a `POST` request.
 
  @param URLString The URL string used to create the request URL.

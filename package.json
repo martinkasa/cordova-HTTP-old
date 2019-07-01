@@ -1,7 +1,31 @@
 {
-  "name": "cordova-plugin-http",
-  "version": "1.2.0",
-  "description": "Cordova / Phonegap plugin for communicating with HTTP servers using SSL pinning",
+  "_from": "git+https://github.com/martinkasa/cordova-HTTP.git",
+  "_id": "cordova-plugin-http@1.2.0",
+  "_inBundle": false,
+  "_location": "/cordova-plugin-http",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "git+https://github.com/martinkasa/cordova-HTTP.git",
+    "rawSpec": "git+https://github.com/martinkasa/cordova-HTTP.git",
+    "saveSpec": "git+https://github.com/martinkasa/cordova-HTTP.git",
+    "fetchSpec": "https://github.com/martinkasa/cordova-HTTP.git",
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "git+https://github.com/martinkasa/cordova-HTTP.git#b74e42a7510355ad5240605c05a74467f0e65a1e",
+  "_spec": "git+https://github.com/martinkasa/cordova-HTTP.git",
+  "_where": "/Users/mka/whitestein/mobile/src",
+  "author": {
+    "name": "Wymsee"
+  },
+  "bugs": {
+    "url": "https://github.com/wymsee/cordova-HTTP/issues"
+  },
+  "bundleDependencies": false,
   "cordova": {
     "id": "cordova-plugin-http",
     "platforms": [
@@ -9,10 +33,15 @@
       "android"
     ]
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/wymsee/cordova-HTTP.git"
-  },
+  "deprecated": false,
+  "description": "Cordova / Phonegap plugin for communicating with HTTP servers using SSL pinning",
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=3.0.0"
+    }
+  ],
+  "homepage": "https://github.com/wymsee/cordova-HTTP#readme",
   "keywords": [
     "cordova",
     "device",
@@ -20,16 +49,11 @@
     "cordova-ios",
     "cordova-android"
   ],
-  "engines": [
-    {
-      "name": "cordova",
-      "version": ">=3.0.0"
-    }
-  ],
-  "author": "Wymsee",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/wymsee/cordova-HTTP/issues"
+  "name": "cordova-plugin-http",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wymsee/cordova-HTTP.git"
   },
-  "homepage": "https://github.com/wymsee/cordova-HTTP#readme"
+  "version": "1.2.0"
 }
